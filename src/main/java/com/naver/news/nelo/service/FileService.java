@@ -88,4 +88,38 @@ public class FileService {
             map.compute(key, (k, v) -> v = 1);
         }
     }
+
+    /**
+     * Flux Rank
+     * Right Unbounded > 100
+     */
+    public Flux<innerNelo> ranking(String key) {
+        return reactiveRedis.opsForZSet()
+                .reverseRangeByScoreWithScores(key, Range.rightUnbounded(Range.Bound.exclusive(100.0)))
+                .map(tuple -> new innerNelo((String) tuple.getValue(), tuple.getScore()));
+    }
+
+    /**
+     * Flux<Boolean> executed = redis.execute(script, Arrays.asList("transactionId"), Arrays.asList(n.getBody()));
+     */
+    public void push(List<Nelo> nelo, String key) {
+        for (Nelo n : nelo) {
+            reactiveRedis.opsForZSet().incrementScore(key, n.getBody(), 1).subscribe();
+        }
+    }
+
+    /**
+     * zscore [key] [value]
+     */
+    public void push(Nelo nelo, String key) {
+        reactiveRedis.execute(script, Collections.singletonList(key), Collections.singletonList(nelo.getBody())).subscribe();
+    }
+
+    public <T> void print(T t) {
+        try {
+            log.info(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(t));
+        } catch (Exception e) {
+            log.error("print exception : " + e.getMessage());
+        }
+    }
 }
