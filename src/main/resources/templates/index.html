@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+<body>
+<div class = "container">
+<!--    <div th:each="nelo : ${innerNelo}">-->
+<!--        <p th:text="${nelo.body}"></p>-->
+<!--        <p th:text="${nelo.count}"></p>-->
+<!--    </div>-->
+    <div class = "row">
+        <div id="title">
+            <h1>NELO Analytics</h1>
+        </div>
+        <table id = "allMovies" class="table table-striped">
+            <thead>
+            <tr>
+                <th width="70%">Name</th>
+                <th>score</th>
+            </tr>
+            </thead>
+            <tbody class="table-body">
+            <tr id="tr-body">
+            </tr>
+            </tbody>
+            <tr th:each="nelo: ${innerNelo}">
+                <td th:text="${nelo.body}">body</td>
+                <td th:text="${nelo.count}">count</td>
+            </tr>
+        </table>
+    </div>
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        /*[# th:each="nelo : ${innerNelo}"]*/
+        addTable(/*[[${nelo.body}]]*/ "", /*[[${nelo.count}]]*/ "");
+        /*[/]*/
+        /*]]>*/
+        function addTable(body, count) {
+            let tbody = document.getElementsByClassName("tr-body");
+            let length = tbody.rows.length;
+            console.log("LENGTH : ", length);
+            console.log("tbody : ", tbody.rows.cells[length]);
+            console.log("tbody 0 : ", tbody);
+            console.log("tbody 0 : ", tbody.rows[1]);
+            let row = tbody.insertRow(tbody.rows.length); // 하단에 추가
+            let cell1 = row.insertCell(0);
+            let cell2 = row.insertCell(1);
+            cell1.innerHTML = body;
+            cell2.innerHTML = count;
+        }
+    </script>
+</div>
+</body>
+</html>
