@@ -28,4 +28,15 @@ public class NeloService {
                    .doOnNext(list -> files.pipePush(list, uuid))
                    .flatMap(list -> files.ranking(uuid));
     }
+
+    public ParallelFlux<innerNelo> analyzeParallel() throws IOException {
+        String uuid = UUID.randomUUID().toString();
+        return Flux.fromIterable(files.createPaths())
+                .parallel()
+                .runOn(Schedulers.parallel())
+                .flatMap(files::readFile)
+                .flatMap(files::convert)
+                .doOnNext(list -> files.pipePush(list, uuid))
+                .flatMap(list -> files.ranking(uuid));
+    }
 }
