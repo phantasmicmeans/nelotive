@@ -2,23 +2,28 @@ package com.naver.news.nelo.service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.naver.news.nelo.domain.Nelo;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
+import com.naver.news.nelo.data.Nelo;
+import com.naver.news.nelo.data.innerNelo;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Range;
+import org.springframework.data.redis.core.ReactiveRedisTemplate;
+import org.springframework.data.redis.core.RedisCallback;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.List;
-import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
+//TODO interface
 @Slf4j
 @Service
 public class FileService {
@@ -27,8 +32,9 @@ public class FileService {
         this.mapper = mapper;
     }
 
-    public Map<String, Integer> map = new HashMap<>();
-    private final Path rootLocation = Paths.get("/Users/phantasmicmeans/Downloads/log_2020 0221_184517_981.json");
+
+    public ConcurrentHashMap<String, Integer> map = new ConcurrentHashMap<>();
+    private final Path rootLocation = Paths.get("/Users/phantasmicmeans/Downloads/log_2020 0223_160324_454.json");
 
     public List<Path> createPaths() throws IOException {
         return Files.walk(rootLocation, 1)
@@ -36,25 +42,20 @@ public class FileService {
                     .collect(Collectors.toList());
     }
 
-
-    public byte[] readFile(Path path) {
+    public Mono<byte[]> readFile(Path path) {
         try {
-            return Files.readAllBytes(path);
+            return Mono.just(Files.readAllBytes(path));
         } catch (IOException e) {
-            log.error("IOException : " + e.getMessage());
-            throw new RuntimeException();
+            throw new RuntimeException(); // TODO Error 정의
         }
     }
 
-    public Flux<Nelo> convert(byte[] file) {
-        List<Nelo> nelos = null;
+    public Mono<List<Nelo>> convert(byte[] file) {
         try {
-            nelos = mapper.readValue(file, new TypeReference<List<Nelo>>() {});
+            return Mono.just(mapper.readValue(file, new TypeReference<List<Nelo>>() {}));
         } catch (IOException e) {
-            log.error("IOException : " + e.getMessage());
             throw new RuntimeException(); // TODO Error 정의
         }
-        return Flux.fromIterable(nelos);
     }
 
     // 테스트용 임시 메소드
