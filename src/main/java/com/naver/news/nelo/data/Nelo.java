@@ -1,4 +1,4 @@
-package com.naver.news.nelo.domain;
+package com.naver.news.nelo.data;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
