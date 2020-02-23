@@ -28,8 +28,14 @@ import java.util.stream.Collectors;
 @Service
 public class FileService {
     private final ObjectMapper mapper;
-    public FileService(ObjectMapper mapper) {
+    private final ReactiveRedisTemplate<String, Object> reactiveRedis;
+    private final RedisScript<Boolean> script;
+    private final RedisTemplate<String, Object> redis;
+    public FileService(ObjectMapper mapper, ReactiveRedisTemplate reactiveRedisTemplate, RedisTemplate<String, Object> redisTemplate, RedisScript<Boolean> stringRedisScript) {
         this.mapper = mapper;
+        this.reactiveRedis = reactiveRedisTemplate;
+        this.redis = redisTemplate;
+        this.script = stringRedisScript;
     }
 
 
@@ -58,9 +64,23 @@ public class FileService {
         }
     }
 
-    // 테스트용 임시 메소드
-    // TODO redis sorted set
-    public synchronized void push(Nelo nelo) {
+    /**
+     * transaction 단위 - file 1EA
+     * connection.zSetCommands().zIncrBy(key.getBytes(), 1, n.getBody().getBytes());
+     */
+    public void pipePush(List<Nelo> nelo, String key) {
+        redis.execute((RedisCallback<Object>) connection -> {
+            connection.openPipeline();
+            for (Nelo n : nelo) {
+                redis.opsForZSet().incrementScore(key, n.getBody(), 1);
+            }
+            return connection.closePipeline();
+        });
+    }
+
+    /** for test
+     */
+    public void push(Nelo nelo) {
         String key = nelo.getBody();
         if (map.containsKey(key)) {
             map.compute(key, (k, v) -> v = v + 1);
